@@ -1,0 +1,184 @@
+<title>ThunderPermanent Serving Architecture</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;700&family=IBM+Plex+Sans+Thai:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: single reading column (~980px) with full-width diagram blocks; yellow marks what the team built */
+:root{
+  --bg:#FAFAF7; --fg:#111111; --muted:#5A5A55; --line:#D9D9D2; --panel:#F1F0EA;
+  --ours:#F5B700; --ours-ink:#111111; --ours-text:#8A6400; --ok:#1F7A4D; --warn:#A35A00;
+  --display:'Kanit',Tahoma,sans-serif; --body:'IBM Plex Sans Thai',Tahoma,sans-serif; --mono:'JetBrains Mono','Courier New',monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121211; --fg:#F2F1EB; --muted:#B4B3AA; --line:#33332F; --panel:#1C1C1A;
+  --ours:#F5B700; --ours-ink:#111111; --ours-text:#F5C93A; --ok:#5CC48F; --warn:#F0A04B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121211; --fg:#F2F1EB; --muted:#B4B3AA; --line:#33332F; --panel:#1C1C1A;
+  --ours:#F5B700; --ours-ink:#111111; --ours-text:#F5C93A; --ok:#5CC48F; --warn:#F0A04B; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:980px;margin:0 auto;padding-block:40px 64px;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(30px,5vw,46px);font-weight:700}
+h2{font-size:26px;font-weight:700;padding-top:8px;border-top:2px solid var(--fg)}
+h3{font-size:19px;font-weight:500}
+p{margin:0;max-width:68ch}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--ours-text)}
+.lede{color:var(--muted);font-size:17px}
+section{display:flex;flex-direction:column;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--display);font-size:30px;line-height:1.1}
+.stat span{font-size:13px;color:var(--muted)}
+.stat.hl{background:var(--ours);border-color:var(--ours);color:var(--ours-ink)}
+.stat.hl span{color:var(--ours-ink)}
+.diagram{overflow-x:auto;border:1px solid var(--line);border-radius:12px;padding:20px;background:var(--panel)}
+.flow{display:flex;align-items:stretch;gap:10px;min-width:820px}
+.node{flex:1;border:2px solid var(--fg);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--bg);min-width:0}
+.node.ours{background:var(--ours);border-color:var(--ours);color:var(--ours-ink)}
+.node h3{font-size:16px}
+.node p{font-size:13px;line-height:1.45}
+.node code{font-size:12px}
+.arrow{align-self:center;font-family:var(--mono);font-size:22px;color:var(--muted)}
+.engine{flex:2.2;border:2px dashed var(--fg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.engine>p{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.engine .row{display:flex;gap:8px}
+.engine .node{flex:1}
+.loop{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);min-width:820px}
+.chip{font-size:13px;border:1px solid var(--fg);border-radius:999px;padding:4px 12px;white-space:nowrap}
+.chip.ours{background:var(--ours);border-color:var(--ours);color:var(--ours-ink)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px;border:2px solid var(--fg)}
+.legend i.o{background:var(--ours);border-color:var(--ours)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--panel)}
+tr:last-child td{border-bottom:none}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+code,pre{font-family:var(--mono)}
+code{font-size:13px;background:var(--panel);padding:1px 5px;border-radius:4px}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:13px;line-height:1.5;margin:0}
+.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:1px 9px}
+.tag.ours{background:var(--ours);color:var(--ours-ink)}
+.tag.oss{border:1px solid var(--muted);color:var(--muted)}
+.tag.gen{color:var(--ok);border:1px solid var(--ok)}
+.tag.tune{color:var(--warn);border:1px solid var(--warn)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+ul{margin:0;padding-left:20px}
+li{margin:2px 0}
+a{color:var(--fg)}
+.foot{font-size:13px;color:var(--muted)}
+@media (max-width:720px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+<header style="display:flex;flex-direction:column;gap:12px">
+  <p class="eyebrow">GreenMind LLM Inference Optimization · Team ThunderPermanent</p>
+  <h1>ThunderPermanent Serving Architecture</h1>
+  <p class="lede">How we serve CMKL/MANGO1.5-Qwen3.5-9B on one A100-40GB to maximise on-time answers per joule. Every component runs on stock vLLM 0.32 through its official extension points (middleware, <code>--scheduler-cls</code>, quantized checkpoint, speculative config); there is no fork of vLLM.</p>
+  <div class="stats">
+    <div class="stat hl"><b>100.0</b><span>Final #14 score</span></div>
+    <div class="stat"><b>300/300</b><span>items on time (SLO)</span></div>
+    <div class="stat"><b>169 J</b><span>per request · baseline 613 J per on-time answer</span></div>
+    <div class="stat"><b>91.8%</b><span>accuracy · baseline 87.8%</span></div>
+  </div>
+</header>
+
+<section>
+  <h2>1 · Request path (data plane)</h2>
+  <p>One OpenAI-compatible endpoint on port 8000, one vLLM process, one GPU at a fixed 400 W power limit.</p>
+  <div class="diagram" role="img" aria-label="Request path: grader to SLO middleware to vLLM engine with our SLO scheduler, chunked prefill, INT8 W8A8 model and load-adaptive MTP speculative decoding, on an A100 at fixed 400 W">
+    <div class="flow">
+      <div class="node"><h3>Client / grader</h3><p>OpenAI API, streaming, tool calling, thinking on, temp 0, max_tokens up to 8192, prompts up to 32K</p></div>
+      <div class="arrow">→</div>
+      <div class="node ours"><h3>SLO middleware</h3><p>ASGI <code>slo_priority.py</code>: thinking_token_budget = max_tokens − clamp(0.5·max_tokens, 24, 1024); metadata-only request log</p></div>
+      <div class="arrow">→</div>
+      <div class="engine">
+        <p>vLLM 0.32 engine (stock, OpenAI server, qwen3 reasoning parser, qwen3_coder tool parser)</p>
+        <div class="row">
+          <div class="node ours"><h3>SLO scheduler</h3><p><code>--scheduler-cls</code>: EDF by TTFT deadline, late requests held at the back (never dropped), TPOT admission cap, pause doomed decodes while their avg TPOT &lt; 45 ms</p></div>
+          <div class="node"><h3>Chunked prefill</h3><p>batch budget 2560 tok/step, long-prefill cap 600 (576 effective, 288-token blocks), prefix cache</p></div>
+        </div>
+        <div class="row">
+          <div class="node ours"><h3>INT8 W8A8 model</h3><p>made from official BF16: per-channel RTN weights, dynamic per-token activations, CUTLASS INT8 GEMM</p></div>
+          <div class="node ours"><h3>MTP speculative</h3><p>model's own MTP head, K adapts to load (3/2/1), no MTP block drop for prefix cache</p></div>
+        </div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node"><h3>A100-SXM4-40GB</h3><p>fixed 400 W for the whole run (rule: constant power)</p></div>
+    </div>
+    <div class="loop">
+      <span class="chip ours">metadata telemetry</span><span>→</span>
+      <span class="chip ours">rebuild 300 items</span><span>→</span>
+      <span class="chip ours">digital twin replay (±1 item vs grader)</span><span>→</span>
+      <span class="chip ours">GPU sweep (~30 configs, flock)</span><span>→</span>
+      <span class="chip">serve_final.sh</span><span>→</span>
+      <span class="chip">Final submission</span><span>↺</span>
+    </div>
+  </div>
+  <div class="legend"><span><i class="o"></i>written or made by our team during the event</span><span><i></i>open source, used as is</span></div>
+</section>
+
+<section>
+  <h2>2 · What each component fixes</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Component</th><th>Problem found in the logs</th><th>Measured effect</th><th>Final</th></tr>
+    <tr><td><span class="tag ours">ours</span> Thinking budget middleware</td><td>Forced thinking + small max_tokens: 93 requests cut before answering</td><td class="num">93 → 13 truncated</td><td class="num">guard</td></tr>
+    <tr><td><span class="tag oss">vLLM knob</span> Batch budget + long-prefill cap</td><td>One 8K-token prefill step (~0.75 s) stalls every decoding stream</td><td class="num">184 → 316 on time (replay, /481)</td><td class="num">40.4 → 52.7</td></tr>
+    <tr><td><span class="tag ours">ours</span> SLO-aware scheduler</td><td>FCFS cascades under open-loop overload; TTFT tail 40× the limit</td><td class="num">316 → 416 · p95 TTFT 40× → 1.8×</td><td class="num">→ 80.0 → 85.6</td></tr>
+    <tr><td><span class="tag ours">ours</span> INT8 W8A8 model</td><td>Peak is prefill compute-bound; W4A16 still multiplies in BF16</td><td class="num">411 → 471 · TPOT 49.5 → 27.8 ms · J/on-time 196 → 143</td><td class="num">85.6 → 98.6</td></tr>
+    <tr><td><span class="tag oss">vLLM knob</span> 2560 / cap 600 / adaptive MTP K / no block drop</td><td>A burst of four ~20K-token prompts missed TTFT by 0.2–0.5 s</td><td class="num">292 → 298 /300 (replay)</td><td class="num">99.5 → 100.0</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>3 · General technique vs. tuned to this workload</h2>
+  <div class="two">
+    <div class="card">
+      <h3><span class="tag gen">general</span> Transfers to other traffic</h3>
+      <ul>
+        <li>INT8 W8A8 for prefill-bound serving on Ampere (accuracy 91.8% vs 87.8% baseline)</li>
+        <li>SLO-aware scheduling: deadline order, late hold, TPOT-capped admission (goodput, not throughput)</li>
+        <li>Thinking budget so reasoning models always leave room to answer</li>
+        <li>Measure → replay → change one thing: the digital twin method</li>
+      </ul>
+      <p class="foot">These took the score from 41.8 to 98.6.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag tune">tuned</span> Specific to this trace</h3>
+      <ul>
+        <li>Exact values: batch 2560, long-prefill 600, MTP K thresholds 32/64, guard 45 ms</li>
+        <li>The last 1.4 points: same config scored 99.5 / 99.7 / 99.5 across runs; 300/300 is the new config plus run-to-run variance</li>
+        <li>For new traffic: re-run the twin on its own logs (about one hour of GPU time)</li>
+      </ul>
+      <p class="foot">The twin uses only arrival times and token counts, never prompt text.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>4 · Reproduce</h2>
+<pre>scripts/setup.sh --download-int8      # vLLM 0.32 venv + Eggchad/MANGO1.5-Qwen3.5-9B-W8A8-INT8
+scripts/serve_final.sh start          # :8000, model "mango", fixed 400 W
+python scripts/replay_v2.py --score-real results/reqlog_f14_int8_b2560_dynk_t600.jsonl</pre>
+  <div class="tablewrap"><table>
+    <tr><th>Artifact</th><th>Where</th></tr>
+    <tr><td>Code, configs, results, failures</td><td><a href="https://github.com/Up2mEz/Mango-Optimization">github.com/Up2mEz/Mango-Optimization</a></td></tr>
+    <tr><td>INT8 W8A8 weights (base_model_relation: quantized)</td><td><a href="https://huggingface.co/Eggchad/MANGO1.5-Qwen3.5-9B-W8A8-INT8">huggingface.co/Eggchad/MANGO1.5-Qwen3.5-9B-W8A8-INT8</a></td></tr>
+    <tr><td>Base model</td><td><a href="https://huggingface.co/CMKL/MANGO1.5-Qwen3.5-9B">CMKL/MANGO1.5-Qwen3.5-9B</a></td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>5 · Rules compliance</h2>
+  <ul>
+    <li>Derived weights made during the event from the official BF16 checkpoint; open-source tools only; no calibration data</li>
+    <li>Fixed 400 W power limit for every run; no dynamic power or clock changes</li>
+    <li>Grader generation settings untouched (thinking on, temperature 0, max_tokens); thinking budget approved by the organizers</li>
+    <li>No response caching; normal prefix KV cache only. Request logs hold metadata only (lengths, timings, finish reason)</li>
+    <li>One vLLM process on one GPU; no other GPU work during graded runs</li>
+  </ul>
+  <p class="foot">Team ThunderPermanent: Eakkachat Sathaphon, Paradee Pimoleakaksorn, Pongsura Pongpisan, Thanakrit Samoena.</p>
+</section>
+</div>
