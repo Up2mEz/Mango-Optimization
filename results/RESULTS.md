@@ -205,3 +205,20 @@ gave 300/300 (sT 1.00).
 
 Caveat: replay is a closed-loop estimate and the grader showed about 2 items of run-to-run spread on identical configs (#11-#13), so
 the grader gain from 295-297 to 300 is partly luck; the replay direction (292 -> 298) agrees with it.
+
+## Robustness on unseen loads (24 Oct 23:10–23:30, same GPU, one run each)
+
+How general is the tuning? Three configs on two workloads the configs were not tuned on:
+W1 = the Final load replayed with arrivals 15 % denser (`replay_v2.py --scale 0.87`, items /300);
+W2 = synthetic open-dataset workload, Poisson arrivals, peak 5 req/s (`emulate.py run --arrivals poisson --peak-rps 5 --no-probes`, items /100; not derived from grader logs).
+
+| Config | W1 denser (items /300) | W2 synthetic (items /100) | W2 p95 TTFT / TPOT |
+|---|---|---|---|
+| A = Final #9 (INT8, 1024/512) | 254 | 94 | 2.02 s / 25.1 ms |
+| B = Final #10–#13 (INT8, 2048/512, no-drop) | **287** | **96** | 0.97 s / 29.8 ms |
+| C = Final #14 (INT8, 2560/600, adaptive MTP K) | 279 | 95 | 0.64 s / 26.8 ms |
+
+Reading: the general techniques hold on unseen load (94–96 % of items on time on the synthetic workload). The last tuning step (C)
+does not generalise better than B: it is the best on the exact grader trace but loses 8 items to B when the same load is 15 % denser,
+and ties on the synthetic load. For production we therefore recommend profile B (`GM_SPEC_DYN= GM_MAX_BATCHED=2048`, long-prefill 512);
+C is the competition profile. Single runs; run-to-run spread is about ±2 items.

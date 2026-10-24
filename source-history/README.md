@@ -1,22 +1,18 @@
 # Original Git history
 
-The source package was prepared in a separate submission checkout.
-Original source commit: `5a89ff34847bda1d82fb643c50108ede06e4dce5`.
+Original source commit: `3b26511ac733222cec5bf9bf2185d3d1bdf68532`.
+This bundle preserves all 11 source commits and their original authorship.
+The public branch is published through the authorized Up2mEz connector, so its
+publication commits differ from the source commit graph.
 
-The GitHub publication uses the already-authorized Up2mEz connector because
-GitHub CLI device authorization could not be completed. Source files are
-published as a snapshot; the original commits and authorship are retained in
-[greenmind-submission.bundle](greenmind-submission.bundle).
-
-To inspect or recover the original repository after downloading the bundle:
+Download [greenmind-submission.bundle](greenmind-submission.bundle) and run:
 
 ```bash
 git bundle verify greenmind-submission.bundle
 git clone greenmind-submission.bundle original-submission
 ```
 
-No model weights or credentials are included. The pitch PDF is submitted
-separately.
+No model weights or credentials are included. The pitch PDF is submitted separately.
 
 ## Original commit history
 
@@ -70,5 +66,10 @@ Subject: docs: architecture overview page (request path, components, general vs 
 Author: eggchad <67070309@kmitl.ac.th>
 AuthorDate: 2026-10-24T22:54:32+07:00
 Subject: docs: fix clone command, public model links and separate slides submission
+
+3b26511ac733222cec5bf9bf2185d3d1bdf68532
+Author: eggchad <67070309@kmitl.ac.th>
+AuthorDate: 2026-10-24T23:31:40+07:00
+Subject: robustness on unseen loads: results + production recommendation (profile B)
 
 ```

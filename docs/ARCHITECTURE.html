@@ -152,7 +152,7 @@ a{color:var(--fg)}
         <li>The last 1.4 points: same config scored 99.5 / 99.7 / 99.5 across runs; 300/300 is the new config plus run-to-run variance</li>
         <li>For new traffic: re-run the twin on its own logs (about one hour of GPU time)</li>
       </ul>
-      <p class="foot">The twin uses only arrival times and token counts, never prompt text.</p>
+      <p class="foot">Unseen-load test: on a synthetic open-dataset workload all three final-stage configs keep 94–96% of items on time; with the grader load 15% denser, the #10–#13 profile (287/300) beats the #14 profile (279/300), so production should use #10–#13. The twin uses only arrival times and token counts, never prompt text.</p>
     </div>
   </div>
 </section>
